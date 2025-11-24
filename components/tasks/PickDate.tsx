@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { parseDate } from "chrono-node";
 import { CalendarIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,7 @@ import {
 } from "@/components/ui/popover";
 
 function formatDate(date: Date | undefined) {
-  if (!date) {
-    return "";
-  }
-
+  if (!date) return "";
   return date.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
@@ -38,17 +34,20 @@ export default function PickDate({
   label,
 }: PickDateProps) {
   const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value || "In 2 days");
+  const [inputValue, setInputValue] = React.useState(value);
   const [date, setDate] = React.useState<Date | undefined>(
-    parseDate(inputValue) || undefined
+    value ? new Date(value) : undefined
   );
-  const [month, setMonth] = React.useState<Date | undefined>(date);
+  const [month, setMonth] = React.useState<Date | undefined>(
+    date || new Date()
+  );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    const parsedDate = parseDate(newValue);
-    if (parsedDate) {
+
+    const parsedDate = new Date(newValue);
+    if (!isNaN(parsedDate.getTime())) {
       setDate(parsedDate);
       setMonth(parsedDate);
       onChange?.(parsedDate.toISOString());
@@ -57,12 +56,9 @@ export default function PickDate({
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
-    const formatted = formatDate(selectedDate);
-    setInputValue(formatted);
+    setInputValue(formatDate(selectedDate));
     setOpen(false);
-    if (selectedDate) {
-      onChange?.(selectedDate.toISOString());
-    }
+    if (selectedDate) onChange?.(selectedDate.toISOString());
   };
 
   return (
@@ -70,11 +66,11 @@ export default function PickDate({
       <Label htmlFor="date" className="px-1">
         {label}
       </Label>
-      <div className="relative flex ">
+      <div className="relative flex">
         <Input
           id="date"
           value={inputValue}
-          placeholder="Tomorrow or next week"
+          placeholder="YYYY-MM-DD"
           className="bg-background pr-10"
           onChange={handleInputChange}
           onKeyDown={(e) => {

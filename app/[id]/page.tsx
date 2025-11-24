@@ -19,15 +19,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <main className="p-16">
-      <h1 className="text-4xl">Project</h1>
+      <h1 className="text-4xl">Tasks</h1>
 
       <Card className="p-6 mt-8 space-y-6">
         {/* Render each project */}
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard key={task.id} task={task} projectId={id} />
         ))}
 
-        <AddTaskFrom />
+        <AddTaskFrom projectId={id} />
       </Card>
     </main>
   );

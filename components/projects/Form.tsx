@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,9 +22,10 @@ type FormValues = {
 };
 
 export default function AddProjectForm() {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const {
     register,
@@ -35,8 +37,6 @@ export default function AddProjectForm() {
   async function onSubmit(values: FormValues) {
     try {
       setLoading(true);
-      setSuccessMessage(null);
-      setErrorMessage(null);
 
       const res = await fetch("http://localhost:5000/api/projects", {
         method: "POST",
@@ -44,27 +44,31 @@ export default function AddProjectForm() {
         body: JSON.stringify(values),
       });
 
-      if (!res.ok) setErrorMessage("Failed to create project");
+      if (!res.ok) {
+        console.error("Failed to create project");
+        return;
+      }
 
       reset();
-      setSuccessMessage("Project added successfully!");
+      router.refresh();
+      setOpen(false);
     } catch (error) {
       console.error(error);
-      setErrorMessage("Error creating project");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className=" w-full bg-white dark:bg-zinc-900  ">
-      <Dialog>
-        <DialogTrigger>
-          <Button variant={"outline"}>Create Project</Button>
+    <div className="w-full bg-white dark:bg-zinc-900">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline">Create Project</Button>
         </DialogTrigger>
+
         <DialogContent>
           <DialogHeader>
-            <DialogTitle> Add New Project to The list</DialogTitle>
+            <DialogTitle>Add New Project to the List</DialogTitle>
             <DialogDescription>
               <form
                 onSubmit={handleSubmit(onSubmit)}
@@ -72,9 +76,7 @@ export default function AddProjectForm() {
               >
                 {/* Project Name */}
                 <div>
-                  <label className="text-start block mb-1 font-medium">
-                    Project Name
-                  </label>
+                  <label className="block mb-1 font-medium">Project Name</label>
                   <Input
                     placeholder="Enter project name"
                     {...register("name", {
@@ -90,9 +92,7 @@ export default function AddProjectForm() {
 
                 {/* Description */}
                 <div>
-                  <label className="text-start block mb-1 font-medium">
-                    Description
-                  </label>
+                  <label className="block mb-1 font-medium">Description</label>
                   <Textarea
                     placeholder="Optional description..."
                     className="resize-none"
@@ -100,14 +100,7 @@ export default function AddProjectForm() {
                   />
                 </div>
 
-                {successMessage && (
-                  <p className="text-green-600 text-xs ">{successMessage}</p>
-                )}
-                {errorMessage && (
-                  <p className="text-red-600  text-xs">{errorMessage}</p>
-                )}
-
-                <Button type="submit" className="w-fit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="w-fit">
                   {loading ? "Saving..." : "Add Project"}
                 </Button>
               </form>
